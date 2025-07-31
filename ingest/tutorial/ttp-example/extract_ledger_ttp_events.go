@@ -5,8 +5,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/stellar/go/ingest/processors/token_transfer"
 	"github.com/stellar/go/network"
+	"github.com/stellar/go/processors/token_transfer"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/xdr"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -18,6 +18,8 @@ func main() {
 		log.Fatalf("Usage: go run extract_events_from_ledger.go <input_file> [<output_file>]")
 		return
 	}
+
+	networkPassphrase := network.PublicNetworkPassphrase
 
 	inputFileName := os.Args[1]
 	var outputFile *os.File
@@ -66,7 +68,7 @@ func main() {
 		}
 
 		// Process the ledger to extract token transfer events
-		ttp := token_transfer.NewEventsProcessor(network.PublicNetworkPassphrase)
+		ttp := token_transfer.NewEventsProcessor(networkPassphrase)
 		events, err := ttp.EventsFromLedger(ledger)
 		if err != nil {
 			log.Errorf("Error processing ledger at line %d: %v", lineNum, err)
@@ -79,7 +81,7 @@ func main() {
 		fmt.Printf("Processing ledger Seq: %d, ClosedAt: %v, Protocol Version: %v\n",
 			ledger.LedgerSequence(), ledger.ClosedAt(), ledger.ProtocolVersion())
 
-		verificationResult := token_transfer.VerifyEvents(ledger, network.PublicNetworkPassphrase)
+		verificationResult := token_transfer.VerifyEvents(ledger, networkPassphrase)
 
 		verificationStatus := "success"
 		if verificationResult != nil {
